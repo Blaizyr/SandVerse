@@ -21,6 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.sandverse.R
 import com.example.sandverse.ui.ButtonMain
+import com.example.sandverse.ui.CloudList
 import com.example.sandverse.viewmodels.MainViewModel
 
 
@@ -33,6 +34,7 @@ fun WiFiDirectScreen(
 
     val context = LocalContext.current
     var isDiscovering by remember { mutableStateOf(false) }
+    var isVisible by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -53,6 +55,7 @@ fun WiFiDirectScreen(
         ButtonMain(
             onClick = {
                 viewModel.searchRooms()
+                isVisible = true
                 isDiscovering = true
                 wifiP2pManager.discoverPeers(channel, object : WifiP2pManager.ActionListener {
                     override fun onSuccess() {
@@ -69,4 +72,8 @@ fun WiFiDirectScreen(
             text = "Szukaj pokoi"
         )
     }
+    CloudList(
+        modalVisible = isVisible,
+        onClose = { isVisible = false }
+    )
 }

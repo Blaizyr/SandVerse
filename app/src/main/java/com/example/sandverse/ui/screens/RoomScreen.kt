@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.sandverse.R
-import com.example.sandverse.data.RoomData
+import com.example.sandverse.model.RoomData
 import com.example.sandverse.ui.ButtonMain
 import com.example.sandverse.viewmodels.MainViewModel
 

@@ -1,3 +1,3 @@
-package com.example.sandverse.data
+package com.example.sandverse.model
 
 data class UserData(val username: String, val password: String)

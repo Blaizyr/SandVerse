@@ -32,7 +32,7 @@ class WifiDirectBroadcastReceiver(
 
             WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION -> {
                 wifiP2pManager.requestPeers(channel) { peers: WifiP2pDeviceList ->
-                    // Handle peers list
+                    TODO("Handle list of peers")
                 }
             }
 

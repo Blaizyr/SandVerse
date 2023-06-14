@@ -1,10 +1,9 @@
 package com.example.sandverse.viewmodels
 
-import android.net.wifi.p2p.WifiP2pManager
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
-import com.example.sandverse.data.RoomData
-import com.example.sandverse.data.UserData
+import com.example.sandverse.model.PeersModel
+import com.example.sandverse.model.RoomData
+import com.example.sandverse.model.UserData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -15,6 +14,8 @@ class MainViewModel : ViewModel() {
     private val _roomData = MutableStateFlow(RoomData("", "", 0))
     val roomData: StateFlow<RoomData> = _roomData
 
+    private val _peersData = MutableStateFlow<List<PeersModel>>(emptyList())
+    val peersData: StateFlow<List<PeersModel>> = _peersData
 
     fun login(setUsername: (String) -> Unit, setPassword: (String) -> Unit) {
         val username = _userData.value.username
