@@ -19,6 +19,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.example.sandverse.DeviceListHolder
 import com.example.sandverse.R
 import com.example.sandverse.ui.ButtonMain
 import com.example.sandverse.ui.CloudList
@@ -30,11 +31,27 @@ fun WiFiDirectScreen(
     navHostController: NavHostController,
     viewModel: MainViewModel = viewModel(),
     wifiP2pManager: WifiP2pManager,
-    channel : WifiP2pManager.Channel?) {
-
+    channel: WifiP2pManager.Channel?,
+) {
     val context = LocalContext.current
-    var isDiscovering by remember { mutableStateOf(false) }
     var isVisible by remember { mutableStateOf(false) }
+
+
+    /*val device = deviceList
+    val config = WifiP2pConfig()
+    config.deviceAddress = deviceList.deviceAddress
+    channel?.also { channel ->
+        wifiP2pManager?.connect(channel, config, object : WifiP2pManager.ActionListener {
+
+            override fun onSuccess() {
+                //success logic
+            }
+
+            override fun onFailure(reason: Int) {
+                //failure logic
+            }
+        })
+    }*/
 
     Column(
         modifier = Modifier
@@ -54,16 +71,15 @@ fun WiFiDirectScreen(
 
         ButtonMain(
             onClick = {
-                viewModel.searchRooms()
+                //viewModel.searchRooms()
                 isVisible = true
-                isDiscovering = true
                 wifiP2pManager.discoverPeers(channel, object : WifiP2pManager.ActionListener {
                     override fun onSuccess() {
                         Toast.makeText(context, "Sukces!", Toast.LENGTH_LONG).show()
                     }
 
                     override fun onFailure(p0: Int) {
-                        Toast.makeText(context, "Błąd", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "Błąd $p0", Toast.LENGTH_LONG).show()
                     }
 
                 })
@@ -74,6 +90,8 @@ fun WiFiDirectScreen(
     }
     CloudList(
         modalVisible = isVisible,
-        onClose = { isVisible = false }
+        onClose = { isVisible = false },
+        content = DeviceListHolder.devices
     )
 }
+

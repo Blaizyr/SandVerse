@@ -6,6 +6,9 @@ import android.content.Intent
 import android.net.wifi.p2p.WifiP2pDeviceList
 import android.net.wifi.p2p.WifiP2pManager
 import android.widget.Toast
+import androidx.compose.runtime.mutableStateListOf
+import com.example.sandverse.DeviceListHolder.devices
+
 
 class WifiDirectBroadcastReceiver(
     private val wifiP2pManager: WifiP2pManager,
@@ -13,26 +16,35 @@ class WifiDirectBroadcastReceiver(
     private val activity: MainActivity
 ) : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val action: String? = intent.action
-        when (action) {
+        when (intent.action) {
 
             WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION -> {
-                val state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1)
-                when (state) {
+                when (intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1)) {
                     WifiP2pManager.WIFI_P2P_STATE_ENABLED -> {
                         Toast.makeText(activity, "Wi-Fi P2P is enabled!", Toast.LENGTH_LONG).show()
-
                     }
 
                     else -> {
-                        Toast.makeText(activity, "Wi-Fi P2P isn't enabled", Toast.LENGTH_LONG).show()
+                        Toast.makeText(activity, "Wi-Fi P2P isn't enabled", Toast.LENGTH_LONG)
+                            .show()
                     }
                 }
             }
 
             WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION -> {
                 wifiP2pManager.requestPeers(channel) { peers: WifiP2pDeviceList ->
-                    TODO("Handle list of peers")
+                    devices.clear()
+                    if (peers.deviceList.isNotEmpty()) {
+                        devices.addAll(peers.deviceList.map { it.deviceName.toString() })
+                        Toast.makeText(
+                            activity,
+                            "Znaleziono ${devices.size} urządzeń",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    } else {
+                        Toast.makeText(activity, "Nie znaleziono urządzeń", Toast.LENGTH_LONG)
+                            .show()
+                    }
                 }
             }
 
@@ -46,3 +58,9 @@ class WifiDirectBroadcastReceiver(
         }
     }
 }
+
+
+object DeviceListHolder {
+    val devices = mutableStateListOf<String>()
+}
+

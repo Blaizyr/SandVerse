@@ -1,7 +1,6 @@
 package com.example.sandverse
 
 import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.IntentFilter
 import android.net.wifi.p2p.WifiP2pManager
 import android.os.Bundle
@@ -15,7 +14,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-
 import com.example.sandverse.ui.screens.LoginScreen
 import com.example.sandverse.ui.screens.RoomScreen
 import com.example.sandverse.ui.screens.WiFiDirectScreen
@@ -41,14 +39,18 @@ class MainActivity : ComponentActivity() {
                 NavHost(navController = navController, startDestination = "login") {
                     composable("login") { LoginScreen(navController) }
                     composable("wifiDirect") {
-                        WiFiDirectScreen(navController, wifiP2pManager = wifiP2pManager, channel = channel)
+                        WiFiDirectScreen(
+                            navController,
+                            wifiP2pManager = wifiP2pManager,
+                            channel = channel
+                        )
                     }
                     composable("room") { RoomScreen(navController) }
                 }
             }
         }
 
-        wifiP2pManager = getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
+        wifiP2pManager = getSystemService(WIFI_P2P_SERVICE) as WifiP2pManager
         channel = wifiP2pManager.initialize(this, mainLooper, null)
         channel?.also { channel ->
             receiver = WifiDirectBroadcastReceiver(wifiP2pManager, channel, this)
