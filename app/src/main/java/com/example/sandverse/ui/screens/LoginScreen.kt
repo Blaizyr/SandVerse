@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
@@ -43,14 +44,14 @@ fun LoginScreen(navHostController: NavHostController, viewModel: MainViewModel =
         TextField(
             value = userData.username,
             onValueChange = setUsername,
-            label = { Text("Username") },
+            label = { Text(stringResource(R.string.username)) },
             modifier = Modifier
                 .padding(16.dp)
         )
         TextField(
             value = userData.password,
             onValueChange = setPassword,
-            label = { Text("Password") },
+            label = { Text(stringResource(R.string.password)) },
             modifier = Modifier
                 .padding(16.dp),
             visualTransformation = PasswordVisualTransformationa()
@@ -61,7 +62,7 @@ fun LoginScreen(navHostController: NavHostController, viewModel: MainViewModel =
                 viewModel.login(setUsername, setPassword)
                 navHostController.navigate("wifiDirect")
             },
-            text = "Login"
+            text = stringResource(R.string.login) 
         )
     }
 }

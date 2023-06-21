@@ -12,29 +12,33 @@ import androidx.compose.runtime.remember
 fun CloudList(
     modalVisible: Boolean,
     onClose: () -> Unit,
+    contentPipe: @Composable () -> Unit = { }, // Use this if you only want to pass content from a higher-level composable to CloudWindow.
     content: List<Any>? = null
 ) {
     val placeholderContent = remember {
         mutableStateListOf(
             "Loading...",
             "Loading...",
-            "Loading...",
-            "Loading...",
-            "Loading...",
-            "Loading...",
-            "Loading...",
-            "Loading...",
-            "Loading...",
             "Loading..."
         )
     }
-    val listContent = content ?: placeholderContent
     val lazyColumnContent = @Composable {
         LazyColumn {
-            items(listContent) { item ->
+            items(content ?: placeholderContent) { item ->
                 Text(text = item.toString())
             }
         }
     }
-    CloudWindow(modalVisible = modalVisible, onClose = onClose, content = lazyColumnContent)
+
+    val determinedContent = when (content) {
+        null -> contentPipe
+        else -> lazyColumnContent
+    }
+
+    CloudWindow(
+        modalVisible = modalVisible,
+        onClose = onClose,
+        content = determinedContent
+    )
+
 }

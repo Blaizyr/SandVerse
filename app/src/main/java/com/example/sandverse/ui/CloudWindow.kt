@@ -15,10 +15,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.sandverse.R
 
 @Composable
-fun CloudWindow(modalVisible: Boolean, onClose:() -> Unit,content: @Composable () -> Unit) {
+fun CloudWindow(
+    modalVisible: Boolean,
+    onClose:() -> Unit,
+    content: @Composable () -> Unit
+) {
     if (modalVisible) {
         Box(
             modifier = Modifier
@@ -37,7 +43,7 @@ fun CloudWindow(modalVisible: Boolean, onClose:() -> Unit,content: @Composable (
                 ) {
                     content()
                     IconButton(onClick = onClose) {
-                        Icon(Icons.Filled.Close, contentDescription = "Zamknij")
+                        Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.close) )
                     }
                 }
             }
