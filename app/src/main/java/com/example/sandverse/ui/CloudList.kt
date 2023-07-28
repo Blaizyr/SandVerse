@@ -1,12 +1,14 @@
 package com.example.sandverse.ui
 
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun CloudList(
@@ -23,7 +25,9 @@ fun CloudList(
         )
     }
     val lazyColumnContent = @Composable {
-        LazyColumn {
+        LazyColumn(
+            contentPadding = PaddingValues(vertical = 10.dp)
+        ) {
             items(content ?: placeholderContent) { item ->
                 Text(text = item.toString())
             }

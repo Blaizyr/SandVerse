@@ -8,11 +8,11 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="gray">#CCCCCC</color>
-    <color name="antracyt">#363636</color>
+    <color name="anthracite">#363636</color>
     <!-- CHERRY -->
     <color name="cherryBackground">#FF3366</color>
     <color name="cherryText">#CC0033</color>
-    <color name="wiśniowy">#C6174E</color>
+    <color name="cherry">#C6174E</color>
     <!-- GOLD -->
     <color name="gold">#FFD700</color>
     <color name="light_gold">#FFDFBF00</color>

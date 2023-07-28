@@ -6,7 +6,7 @@
     <string name="wifi_enabled">Wi-Fi P2P is enabled</string>
     <string name="wifi_not_enabled">Wi-Fi P2P is not enabled</string>
     <string name="devices_not_found">Devices not found</string>
-    <string name="devices_num_found">%d devices found</string>
+    <string name="devices_found">Found devices</string>
     <string name="close">Close</string>
     <string name="connecting_fail">Connection to the device failed</string>
     <string name="create_room">Create Room</string>

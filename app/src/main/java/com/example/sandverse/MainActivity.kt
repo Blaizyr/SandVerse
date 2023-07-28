@@ -1,9 +1,7 @@
 package com.example.sandverse
 
-import android.content.BroadcastReceiver
-import android.content.IntentFilter
-import android.net.wifi.p2p.WifiP2pManager
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
@@ -14,70 +12,86 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.couchbase.lite.CouchbaseLite
+import com.example.sandverse.ui.screens.ColorSyncScreen
+import com.example.sandverse.viewmodels.WifiVM
 import com.example.sandverse.ui.screens.LoginScreen
 import com.example.sandverse.ui.screens.RoomScreen
 import com.example.sandverse.ui.screens.WiFiDirectScreen
+import com.example.sandverse.viewmodels.MainVM
+import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
 
-    private val intentFilter = IntentFilter().apply {
-        addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION)
-        addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION)
-        addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION)
-        addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION)
-    }
-
-    private var channel: WifiP2pManager.Channel? = null
-    private var receiver: BroadcastReceiver? = null
-    private lateinit var wifiP2pManager: WifiP2pManager
-
+    private val wifiVM: WifiVM by inject()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
                 val navController = rememberNavController()
                 NavHost(navController = navController, startDestination = "login") {
-                    composable("login") { LoginScreen(navController) }
-                    composable("wifiDirect") {
-                        WiFiDirectScreen(
-                            navController,
-                            wifiP2pManager = wifiP2pManager,
-                            channel = channel
+                    composable("login") {
+                        LoginScreen(
+                            nav = navController,
                         )
                     }
-                    composable("room") { RoomScreen(navController) }
+                    composable("wifiDirect") {
+                        WiFiDirectScreen(
+                            nav = navController,
+                        )
+                    }
+                    composable("room") {
+                        RoomScreen(
+                            nav = navController,
+                        )
+                    }
+                    composable("color") {
+                        ColorSyncScreen(
+                        )
+                    }
+
                 }
             }
         }
 
-        wifiP2pManager = getSystemService(WIFI_P2P_SERVICE) as WifiP2pManager
-        channel = wifiP2pManager.initialize(this, mainLooper, null)
-        channel?.also { channel ->
-            receiver = WifiDirectBroadcastReceiver(wifiP2pManager, channel, this)
+        try {
+            CouchbaseLite.init(applicationContext)
+            Log.v("MainActivity", "Couchbase Lite successfully initialized.")
+        } catch (e: ExceptionInInitializerError) {
+            Log.e("MainActivity", "Couchbase Lite cannot be initialized/", e)
         }
     }
 
     override fun onResume() {
         super.onResume()
-        receiver?.also { receiver ->
-            registerReceiver(receiver, intentFilter)
-        }
+        wifiVM.registerReceiver(applicationContext)
     }
 
     override fun onPause() {
         super.onPause()
-        receiver?.also { receiver ->
-            unregisterReceiver(receiver)
-        }
+        wifiVM.unregisterReceiver(applicationContext)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        wifiVM.cancelConnect()
+    }
 }
 
+/*
+@Composable
+fun SandVerseApp() {
+    TODO("Global-parent composable" )
+}
+*/
 
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
     MaterialTheme {
-        LoginScreen(navHostController = NavHostController(LocalContext.current))
+        LoginScreen(
+            nav = NavHostController(LocalContext.current),
+            mainVM = MainVM()
+        )
     }
 }

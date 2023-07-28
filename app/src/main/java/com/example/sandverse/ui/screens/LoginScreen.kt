@@ -17,26 +17,29 @@ import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.sandverse.viewmodels.MainViewModel
+import com.example.sandverse.viewmodels.MainVM
 import com.example.sandverse.R
 import com.example.sandverse.ui.ButtonMain
+import org.koin.androidx.compose.koinViewModel
 
 
 @Composable
-fun LoginScreen(navHostController: NavHostController, viewModel: MainViewModel = viewModel()) {
-    val userData by viewModel.userData.collectAsState()
+fun LoginScreen(
+    nav: NavHostController,
+    mainVM: MainVM = koinViewModel(),
+) {
+    val userData by mainVM.userModel.collectAsState()
 
-    val setUsername: (String) -> Unit = { username -> viewModel.setUsername(username) }
-    val setPassword: (String) -> Unit = { password -> viewModel.setPassword(password) }
+    val setUsername: (String) -> Unit = { username -> mainVM.setUsername(username) }
+    val setPassword: (String) -> Unit = { password -> mainVM.setPassword(password) }
 
     val context = LocalContext.current
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorResource(id = R.color.antracyt))
+            .background(colorResource(id = R.color.anthracite))
             .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -59,8 +62,8 @@ fun LoginScreen(navHostController: NavHostController, viewModel: MainViewModel =
 
         ButtonMain(
             onClick = {
-                viewModel.login(setUsername, setPassword)
-                navHostController.navigate("wifiDirect")
+                mainVM.login(setUsername, setPassword)
+                nav.navigate("wifiDirect")
             },
             text = stringResource(R.string.login) 
         )
