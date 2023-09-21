@@ -9,7 +9,6 @@ import android.net.wifi.p2p.WifiP2pManager.DnsSdServiceResponseListener
 import android.net.wifi.p2p.WifiP2pManager.DnsSdTxtRecordListener
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest
 import android.util.Log
-import com.example.sandverse.services.wifip2p.DeviceListInfoHolder
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -188,7 +187,6 @@ class NetServicesDiscoverer(
                     override fun onServiceFound(serviceInfo: NsdServiceInfo) {
                         // Found Service
                         val ipAddress = serviceInfo.host.hostAddress
-                        DeviceListInfoHolder.actualConnectionIP = ipAddress
                         Log.v("NetServiceDiscoverer", "Service found. $ipAddress")
                         nsdManager.stopServiceDiscovery(this)
                         continuation.resume("$ipAddress")

@@ -3,8 +3,7 @@ package com.example.sandverse.services
 import android.content.Context
 import android.content.pm.PackageManager
 import android.Manifest
-import android.util.Log.d
-import android.util.Log.e
+import android.util.Log.*
 
 class PermissionManager {
     fun checkPermission(context: Context, permission: Permission): Boolean {

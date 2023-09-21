@@ -1,35 +1,58 @@
 package com.example.sandverse.viewmodels
 
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.IntentFilter
 import android.net.wifi.WpsInfo
 import android.net.wifi.p2p.WifiP2pConfig
+import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pManager
-import android.util.Log
+import android.util.Log.*
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
-import androidx.navigation.NavController
+import androidx.lifecycle.viewModelScope
+import com.example.sandverse.data.PeersUIState
+import com.example.sandverse.data.UIState
+import com.example.sandverse.services.NavigatorHolder
 import com.example.sandverse.services.NetServiceRegistrator
 import com.example.sandverse.services.Permission
 import com.example.sandverse.services.PermissionManager
-import com.example.sandverse.services.wifip2p.DeviceListInfoHolder
-import com.example.sandverse.services.wifip2p.WifiP2pConnectionListener
+import com.example.sandverse.services.wifip2p.OnPeersDataReceivedListener
+import com.example.sandverse.services.wifip2p.WifiDirectBroadcastReceiver
+import com.example.sandverse.services.wifip2p.WifiP2pConnectionHandler
+import com.example.sandverse.ui.screens.WiFiDirectScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import java.lang.Math.random
 
 class WifiVM(
-    private val wifiP2pManager: WifiP2pManager,
-    private val channel: WifiP2pManager.Channel,
-    private val receiver: BroadcastReceiver
-) : ViewModel(), KoinComponent {
+    internal val wifiP2pManager: WifiP2pManager,
+    internal val channel: WifiP2pManager.Channel,
+    internal val receiver: WifiDirectBroadcastReceiver,
+) :
+    ViewModel(),
+    KoinComponent,
+    OnPeersDataReceivedListener {
 
-    private val deviceListInfoHolder: DeviceListInfoHolder by inject()
+    private val _updatesCount: MutableStateFlow<Int> = MutableStateFlow(0)
+    val updatesCount: StateFlow<Int> = _updatesCount.asStateFlow()
+    //--------- PEERS ---------//
+    private val _peersData = MutableStateFlow(UIState(listOf(PeersUIState( "", "", "", "", 1 ))))
+    val peersData: StateFlow<UIState> = _peersData.asStateFlow()
+
+    // -------- KOIN INJECTED -------- //
     private val netServiceRegistrator: NetServiceRegistrator by inject()
-    private val permissionManager: PermissionManager by inject()
-    private var connectionListener: WifiP2pConnectionListener? = null
+    internal val permissionManager: PermissionManager by inject()
+    private val connectionHandler: WifiP2pConnectionHandler by inject()
 
 
     private val intentFilter = IntentFilter().apply {
@@ -39,97 +62,117 @@ class WifiVM(
         addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION)
     }
 
-    // Initialize WiFi P2P
-    fun initializeWifiP2p(context: Context) : WifiP2pManager.Channel {
-        return channel
+
+    init {
+        _peersData
+            .onEach { updatedUIState ->
+                // To check if the reference changes (if a new instance is created)
+                val isSameInstance = updatedUIState === _peersData.value
+
+                // To check if the content of the list is the same
+                val isContentSame = updatedUIState.list == _peersData.value.list
+
+                d("WifiVM", "isSameInstance: $isSameInstance, isContentSame: $isContentSame")
+            }
+            .launchIn(viewModelScope)
     }
 
-    // Register the receiver
+
+
+
+    override fun onPeersDataReceived(peers: Collection<WifiP2pDevice>) {
+        d("WifiVM", "onPeersDataReceived func induced")
+
+        val updatedPeersList: List<PeersUIState> = peers.map { device ->
+            d("WifiVM", "Device: ${device.deviceName} ${device.deviceAddress}")
+            PeersUIState(
+                device.deviceAddress,
+                device.deviceName,
+                device.primaryDeviceType,
+                device.secondaryDeviceType ?: "Unknown",
+                device.status
+            )
+        }
+
+        _peersData.update {
+            it.copy(list = updatedPeersList)
+
+        }.also { _updatesCount.update { it + 1 } }
+        // Log the updated peers data
+        d("WifiVM", "Updated peers data: $updatedPeersList")
+    }
+
+    ///// -------- RECEIVER -------- /////
     fun registerReceiver(context: Context) {
         try {
             context.registerReceiver(receiver, intentFilter)
-            Log.d("WifiVM", "Receiver registered!")
+            receiver.setPeersDataListener(this)
+            d("WifiVM", "Receiver registered!")
         } catch (e: Exception) {
-            Log.e("WifiVM", "Receiver registration problem", e)
+            e("WifiVM", "Receiver registration problem", e)
         }
     }
 
-    // Unregister the receiver
     fun unregisterReceiver(context: Context) {
         context.unregisterReceiver(receiver)
     }
 
-    // Discover peers
+    ////// ------- CONNECTION -------- ///////
     fun discoverPeers(context: Context) {
         if (permissionManager.checkPermission(context, Permission.ACCESS_COARSE_LOCATION)) {
             val channel = this.channel
             wifiP2pManager.discoverPeers(channel, object : WifiP2pManager.ActionListener {
                 override fun onSuccess() {
-                    Log.d("WifiVM", "Peer discovery begins. $context")
+                    d("WifiVM", "Peer discovery begins. $context")
                 }
 
                 override fun onFailure(p0: Int) {
-                    Log.e("WifiVM", "Peer discovery failure. ID: $p0. $context")
+                    e("WifiVM", "Peer discovery failure. ID: $p0. $context")
                 }
             })
         }
     }
 
     // Select a device
-    fun selectDevice(index: Int): WifiP2pConfig {
-        val selectedDevice = DeviceListInfoHolder.deviceAddress[index]
-        DeviceListInfoHolder.actualConnectionAddress = selectedDevice
+    /*fun selectDevice(index: Int) {
+        val device = peersData.value.getOrNull(index)
+        _selectedDevice.value = device
+    }*/
+    /*
+        private fun selectDevice(address: String) {
+    //        val selectedDevice = DeviceListInfoHolder.deviceAddress[index]
+    //        DeviceListInfoHolder.actualConnectionAddress = selectedDevice
+
+            val selectedDevice = peersData.value.getOrNull(address).
+            selectedDevice?.let {
+                val config = WifiP2pConfig().apply {
+                    deviceAddress = selectedDevice.toString()
+                    wps.setup = WpsInfo.PBC
+                }
+                d("WifiVM", "Device $selectedDevice selected")
+            }
+        }
+    */
+
+    fun connect(ctx: Context, address: String) {
         val config = WifiP2pConfig().apply {
-            deviceAddress = selectedDevice
+            deviceAddress = address
             wps.setup = WpsInfo.PBC
         }
-        Log.d("WifiVM", "Device $selectedDevice selected")
-        return config
-    }
-//
-    fun setConnectionListener(listener: WifiP2pConnectionListener, navController: NavController) {
-        connectionListener = listener
-        connectionListener?.setNavController(navController)
-        Log.d("WifiVM", "Connection Listener is set")
+        d("WifiVM", "Device $address selected")
+        connectionHandler.connect(config = config, context = ctx)
     }
 
-    fun registerListenerService(context: Context?, port: Int) {
+    fun disconnect() {
+        connectionHandler.disconnect()
+    }
+
+    ////// ------- Service Registration -------- ///////
+    // Register service on P2P connection
+    fun registerServiceListener(context: Context?, port: Int) {
         CoroutineScope(Dispatchers.IO).launch {
-            Log.d("WifiVM", "Service registration started (1/3)")
+            d("WifiVM", "Service registration started (1/3)")
             netServiceRegistrator.registerServiceP2P(context, port)
         }
-    }
-
-    // Connect with a device
-    fun connectWith(
-        context: Context,
-        config: WifiP2pConfig,
-    ) {
-        if (permissionManager.checkPermission(context, Permission.ACCESS_FINE_LOCATION)) {
-            val channel = this.channel
-            Log.d("Connection (WifiVM)", "Trying to WiFi P2P connect (1/2)")
-            wifiP2pManager.connect(channel, config, object : WifiP2pManager.ActionListener {
-                override fun onSuccess() {
-                    connectionListener?.onConnectionSuccess()
-                }
-
-                override fun onFailure(reason: Int) {
-                    Log.e("Connection (WifiVM)", "Connection failed, $reason. $context")
-                }
-            })
-        }
-    }
-
-    // Cancel the connection
-    fun cancelConnect() {
-        wifiP2pManager.cancelConnect(channel, object : WifiP2pManager.ActionListener {
-            override fun onSuccess() {
-                Log.d("Connection (WiFi ViewModel)", "Disconnection success!")
-            }
-
-            override fun onFailure(errorCode: Int) {
-                Log.e("Connection (WiFi ViewModel)", "Disconnection failed, $errorCode")
-            }
-        })
     }
 }

@@ -4,7 +4,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.sandverse.data.ColorModel
 //import com.example.sandverse.DBManager
-import com.example.sandverse.data.PeersModel
 import com.example.sandverse.data.RoomModel
 import com.example.sandverse.data.UserModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,20 +16,16 @@ class MainVM: ViewModel(), KoinComponent{
     private val replicationState: MutableLiveData<String> by lazy { MutableLiveData<String>("Not Started")}
 
     // COLOR
-    private val _colorModel = MutableStateFlow(ColorModel(""))
+    private var _colorModel = MutableStateFlow(ColorModel(""))
     val colorModel: StateFlow<ColorModel> = _colorModel
 
     // USER
-    private val _userModel = MutableStateFlow(UserModel("", ""))
+    private var _userModel = MutableStateFlow(UserModel("", ""))
     val userModel: StateFlow<UserModel> = _userModel
 
     // ROOM
-    private val _roomModel = MutableStateFlow(RoomModel("", "", 0))
+    private var _roomModel = MutableStateFlow(RoomModel("", "", 0))
     val roomModel: StateFlow<RoomModel> = _roomModel
-
-    // PEERS
-    private val _peersData = MutableStateFlow<List<PeersModel>>(emptyList())
-    val peersData: StateFlow<List<PeersModel>> = _peersData
 
 
         // -------- Functions -------- //

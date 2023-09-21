@@ -1,5 +1,6 @@
 package com.example.sandverse.ui.screens
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,13 +23,13 @@ import androidx.navigation.NavHostController
 import com.example.sandverse.R
 import com.example.sandverse.viewmodels.WifiVM
 import com.example.sandverse.data.RoomModel
-import com.example.sandverse.services.wifip2p.DeviceListInfoHolder
 import com.example.sandverse.ui.ButtonMain
 import com.example.sandverse.viewmodels.MainVM
 import com.example.sandverse.viewmodels.SyncDataVM
 import org.koin.androidx.compose.koinViewModel
 
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun RoomScreen(
     nav: NavHostController,
@@ -40,7 +41,8 @@ fun RoomScreen(
     val roomModel: RoomModel by mainVM.roomModel.collectAsState()
     val userData by mainVM.userModel.collectAsState()
 
-    var isConnected by remember { mutableStateOf(false) }
+    var isConnected by remember { mutableStateOf(true) }
+    isConnected =! isConnected
 
     val context = LocalContext.current
 
@@ -57,14 +59,10 @@ fun RoomScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(text = "Room Name: ${roomModel.roomname}", color = colorResource(id = R.color.cherry))
-        Text(
-            text = "MAC : ${DeviceListInfoHolder.actualConnectionAddress}",
-            color = colorResource(id = R.color.cherry)
-        )
-        Text(
-            text = "IP : ${DeviceListInfoHolder.actualConnectionIP}",
-            color = colorResource(id = R.color.cherry)
-        )
+                /*Text(
+                    text = "MAC : ${wifiVM.peersData.value[0].deviceAddress}",
+                    color = colorResource(id = R.color.cherry)
+                )*/
         /*
                 if (isConnected) {
                     Text(
@@ -92,7 +90,7 @@ fun RoomScreen(
         ButtonMain(
             onClick = {
                 syncDataVM.startToListen()
-                wifiVM.registerListenerService(
+                wifiVM.registerServiceListener(
                     context,
                     port = syncDataVM.getListenerPort()
                 )
@@ -108,12 +106,13 @@ fun RoomScreen(
 
         ButtonMain(
             onClick = {
-                wifiVM.cancelConnect()
+                wifiVM.disconnect()
             },
             text = "Disconnect"
         )
 
         TextField(value = userData.password, onValueChange = {})
     }
+    nav.navigate("login")
 }
 

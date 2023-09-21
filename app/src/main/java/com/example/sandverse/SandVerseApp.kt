@@ -1,19 +1,18 @@
 package com.example.sandverse
 
 import android.app.Application
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.net.nsd.NsdManager
-import android.net.nsd.NsdManager.DiscoveryListener
 import android.net.wifi.p2p.WifiP2pManager
 import android.util.Log
+import com.example.sandverse.services.NavigatorHolder
 import com.example.sandverse.services.NetServiceRegistrator
-import com.example.sandverse.services.wifip2p.DeviceListInfoHolder
 import com.example.sandverse.services.NetServicesDiscoverer
 import com.example.sandverse.services.PermissionManager
 import com.example.sandverse.services.couchbase.WSListener
 import com.example.sandverse.services.couchbase.WSReplicator
 import com.example.sandverse.services.wifip2p.WifiDirectBroadcastReceiver
+import com.example.sandverse.services.wifip2p.WifiP2pConnectionHandler
 import com.example.sandverse.viewmodels.WifiVM
 import com.example.sandverse.viewmodels.MainVM
 import com.example.sandverse.viewmodels.SyncDataVM
@@ -33,6 +32,11 @@ class SandVerseApp : Application() {
         val coroutine = module {
             single { CoroutineScope(Dispatchers.IO) }
         }
+
+        val navigator = module {
+            single { NavigatorHolder() }
+        }
+
         val wifiP2pManager = module {
             single {
                 Log.d("Koin", "Initializing WifiP2pManager...")
@@ -54,11 +58,18 @@ class SandVerseApp : Application() {
         }
 
         val broadcastReceiver = module {
-            single<BroadcastReceiver> {
+            single {
                 Log.d("Koin", "Initializing Wifi P2P Broadcast Receiver...")
                 WifiDirectBroadcastReceiver(get())// wifiP2pManager
             }
             Log.d("Koin", "Wifi P2P Broadcast Receiver - initialization Success!!")
+        }
+
+        val connectionHandler = module {
+            single { WifiP2pConnectionHandler(
+                get(), // WifiP2pManager
+                get() // .Channel
+            ) }
         }
 
         val serviceManager = module {
@@ -82,9 +93,7 @@ class SandVerseApp : Application() {
             }
         }
 
-        val deviceListModule = module {
-            single { DeviceListInfoHolder }
-        }
+
 
         val syncData = module {
             single { PermissionManager() }
@@ -98,12 +107,13 @@ class SandVerseApp : Application() {
             modules(
                 ctx,
                 coroutine,
+                navigator,
                 wifiP2pManager,
                 wifiP2pChannel,
                 broadcastReceiver,
+                connectionHandler,
                 serviceManager,
                 viewModels,
-                deviceListModule,
                 syncData
             )
         }

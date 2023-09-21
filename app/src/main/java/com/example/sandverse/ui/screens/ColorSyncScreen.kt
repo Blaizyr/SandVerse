@@ -4,7 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -18,6 +17,7 @@ import com.example.sandverse.viewmodels.WifiVM
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
+@Suppress("UNUSED_PARAMETER")
 fun ColorSyncScreen(
     mainVM: MainVM = koinViewModel(),
     wifiVM: WifiVM = koinViewModel(),

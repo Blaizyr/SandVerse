@@ -11,8 +11,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import com.couchbase.lite.CouchbaseLite
+import com.example.sandverse.services.NavHolder
+import com.example.sandverse.services.NavigatorHolder
 import com.example.sandverse.ui.screens.ColorSyncScreen
 import com.example.sandverse.viewmodels.WifiVM
 import com.example.sandverse.ui.screens.LoginScreen
@@ -21,28 +22,30 @@ import com.example.sandverse.ui.screens.WiFiDirectScreen
 import com.example.sandverse.viewmodels.MainVM
 import org.koin.android.ext.android.inject
 
-class MainActivity : ComponentActivity() {
+open class MainActivity : ComponentActivity() {
 
     private val wifiVM: WifiVM by inject()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                val navController = rememberNavController()
-                NavHost(navController = navController, startDestination = "login") {
+                val navigatorHolder: NavigatorHolder by inject()
+                NavHolder(navigatorHolder)
+
+                NavHost(navController = navigatorHolder.navController!!, startDestination = "login") {
                     composable("login") {
                         LoginScreen(
-                            nav = navController,
+                            nav = navigatorHolder.navController!!,
                         )
                     }
                     composable("wifiDirect") {
                         WiFiDirectScreen(
-                            nav = navController,
+                            nav = navigatorHolder.navController!!,
                         )
                     }
                     composable("room") {
                         RoomScreen(
-                            nav = navController,
+                            nav = navigatorHolder.navController!!,
                         )
                     }
                     composable("color") {
@@ -74,16 +77,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        wifiVM.cancelConnect()
+        wifiVM.disconnect()
     }
 }
 
-/*
-@Composable
-fun SandVerseApp() {
-    TODO("Global-parent composable" )
-}
-*/
 
 @Preview(showBackground = true)
 @Composable
